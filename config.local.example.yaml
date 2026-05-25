@@ -1,0 +1,123 @@
+# Local-only CLIProxyAPI template for Windows + Docker Compose.
+# Copy this file to config.yaml before running docker compose:
+#   copy config.local.example.yaml config.yaml
+#
+# This file intentionally contains no real API keys or OAuth tokens.
+# Codex OAuth files are stored under ./auths via docker-compose.yml.
+
+# Inside Docker, keep host empty so the service listens inside the container.
+# External exposure is restricted by docker-compose.yml localhost port bindings.
+host: ""
+port: 8317
+
+tls:
+  enable: false
+  cert: ""
+  key: ""
+
+remote-management:
+  allow-remote: false
+  # Leave empty to disable Management API entirely.
+  secret-key: ""
+  disable-control-panel: true
+  panel-github-repository: "https://github.com/router-for-me/Cli-Proxy-API-Management-Center"
+
+auth-dir: "~/.cli-proxy-api"
+
+# Local client key used by Claude Code / OpenCode to call this proxy.
+# This is NOT an OpenAI API key.
+api-keys:
+  - "sk-local-cliproxy"
+
+debug: false
+logging-to-file: true
+logs-max-total-size-mb: 200
+error-logs-max-files: 20
+usage-statistics-enabled: false
+
+pprof:
+  enable: false
+  addr: "127.0.0.1:8316"
+
+commercial-mode: false
+proxy-url: ""
+force-model-prefix: false
+passthrough-headers: false
+request-retry: 2
+max-retry-credentials: 1
+max-retry-interval: 15
+disable-cooling: false
+disable-image-generation: false
+
+quota-exceeded:
+  switch-project: true
+  switch-preview-model: true
+  antigravity-credits: false
+
+routing:
+  strategy: "round-robin"
+  # Keep disabled for the first smoke test. Enable only after the basic chain is stable.
+  session-affinity: false
+  session-affinity-ttl: "1h"
+
+ws-auth: true
+enable-gemini-cli-endpoint: false
+nonstream-keepalive-interval: 0
+
+# -----------------------------------------------------------------------------
+# Claude Code role alias plan
+# -----------------------------------------------------------------------------
+# Start with Codex OAuth only. After running --codex-login, Claude Code can map
+# its built-in opus/sonnet/haiku aliases to these Codex model names via env vars:
+#
+#   $env:ANTHROPIC_BASE_URL = "http://127.0.0.1:8317"
+#   $env:ANTHROPIC_AUTH_TOKEN = "sk-local-cliproxy"
+#   $env:ANTHROPIC_DEFAULT_HAIKU_MODEL = "gpt-5-codex(low)"
+#   $env:ANTHROPIC_DEFAULT_SONNET_MODEL = "gpt-5-codex(medium)"
+#   $env:ANTHROPIC_DEFAULT_OPUS_MODEL = "gpt-5-codex(high)"
+#   Remove-Item Env:CLAUDE_CODE_SUBAGENT_MODEL -ErrorAction SilentlyContinue
+#   claude
+#
+# Later, when you add more providers, you can expose stable role aliases such as:
+#   role-scout      -> cheap/fast model
+#   role-dev        -> main coding model
+#   role-architect  -> high-reasoning model
+# and point Claude Code's haiku/sonnet/opus aliases to those role-* names.
+
+# -----------------------------------------------------------------------------
+# Optional examples for future provider routing. Keep commented until you have
+# real credentials and have completed the Codex-only smoke test.
+# -----------------------------------------------------------------------------
+
+# Gemini API key example:
+# gemini-api-key:
+#   - api-key: "PASTE_GEMINI_API_KEY_HERE"
+#     models:
+#       - name: "gemini-2.5-flash-lite"
+#         alias: "role-scout"
+
+# OpenAI-compatible provider example, such as DeepSeek / OpenRouter / Token Plan:
+# openai-compatibility:
+#   - name: "example-openai-compatible"
+#     disabled: false
+#     base-url: "https://example.com/v1"
+#     api-key-entries:
+#       - api-key: "PASTE_PROVIDER_KEY_HERE"
+#     models:
+#       - name: "example-coding-model"
+#         alias: "role-dev"
+
+# Claude API key example. Do not use this unless you have a real Anthropic API key.
+# claude-api-key:
+#   - api-key: "PASTE_CLAUDE_API_KEY_HERE"
+#     models:
+#       - name: "claude-opus-4-1-20250805"
+#         alias: "role-architect"
+
+# OAuth model aliases can be used after relevant OAuth login flows are complete.
+# Keep aliases unique to avoid cross-provider ambiguity.
+# oauth-model-alias:
+#   codex:
+#     - name: "gpt-5-codex"
+#       alias: "role-architect"
+#       fork: true
